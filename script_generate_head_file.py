@@ -9,12 +9,74 @@ import os
 状态机相对c编译器是极为简化·
 
 '''
-global filecontent,filename
+filecontent = ''
+filename = ''
+global var_name ,struct_name
 
-def analysecontent():
-    global filecontent
+#标识符种类
+NORMAL_ID = 1#普通的类型标识符
+NORMAL_VAR = 2#普通的变量
+STRUCT_TYPE = 3#结构体名
+STRUCT_MEM = 4 #结构体成员变量
+
+
+var_name = []#保存所有未定义数据类型的名称
+struct_name = {}#保存所有
+
+## 满足标识符的字符数组
+characters1 = [chr(i) for i in range(ord('a'),ord('z'))]
+characters2 = [chr(i) for i in range(ord('A'),ord('Z'))]
+characters3 = [chr(i) for i in range(ord('0'),ord('9'))]
+characters = characters1+characters2+characters3
+characters.append('_')
+characters_first = characters1+characters2
+characters_first.append('_')
+
+#二维数组 保存经过分词之后的文件内容 ， 每行为一个维度
+filecontent_splited = []
+
+def analysecontent():#分析c文件内容
+    global filecontent,characters,characters_first 
     c_size = len(filecontent)
-    print c_size
+    #逐个字符分析
+    current_pos = 0
+    newline = []#暂存一行中的标识符
+    IS_NOTE = 0 #是否在注释内部
+
+    while (current_pos < c_size):
+        #判断是否是注释内容
+        if(filecontent[current_pos] == '/'):
+            if(filecontent[current_pos+1] == '/' and not IS_NOTE  ):
+                IS_NOTE = 1
+            elif (filecontent[current_pos-1] == '*' and IS_NOTE ):
+                IS_NOTE = 0
+            elif (filecontent[current_pos+1] == '*' and not IS_NOTE):
+                IS_NOTE = 10000
+        #判断是否开始行的一行
+        elif(filecontent[current_pos] == '\n'):
+            if(IS_NOTE):
+                IS_NOTE -=1
+            if(len(newline)):
+                filecontent_splited.append(newline)
+                newline = []
+        #判断是否是标识符的开始
+        elif(filecontent[current_pos] in characters_first and not IS_NOTE):
+            #得到标识符
+            start = current_pos
+            current_pos+=1
+            while(filecontent[current_pos] in characters or filecontent[current_pos] == '.'):
+                current_pos+=1
+            Identifier = filecontent[start:current_pos]
+            newline.append(Identifier)
+            #继续找下一个标识符
+        current_pos+=1
+    for item in filecontent_splited:
+        print item
+
+
+
+
+
 def writetoheadfile():
     global filename_pre
 
